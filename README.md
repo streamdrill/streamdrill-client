@@ -18,4 +18,5 @@ First, check out the client code together with the examples and compile it:
     mvn package
 
 That's it, now you should be ready to [try the examples](http://demo.streamdrill.com/docs/?p=examples).
+If you want to try your own data and need an instance, [let us know](http://streamdrill.com/register/).
 
