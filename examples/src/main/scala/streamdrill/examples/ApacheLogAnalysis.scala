@@ -3,6 +3,8 @@ package streamdrill.examples
 import io.Source
 import java.text.SimpleDateFormat
 import streamdrill.client.StreamDrillClient
+import java.io.FileInputStream
+import java.util.zip.GZIPInputStream
 
 /**
  * A more practical example that parses an apache http log-file and streams the
@@ -19,6 +21,12 @@ object ApacheLogAnalysis extends App {
   if (args.length != 1) {
     println("usage: ApacheLogAnalysis <apache-access.log>")
     System.exit(0)
+  }
+
+  val logStream = if(args(0).endsWith(".gz")) {
+    new GZIPInputStream(new FileInputStream(args(0)))
+  } else {
+    new FileInputStream(args(0))
   }
 
   // these are our demo access key and secret
@@ -38,7 +46,7 @@ object ApacheLogAnalysis extends App {
   val stream = client.stream()
 
   println("streaming log file: %s".format(args(0)))
-  Source.fromFile(args(0)).getLines().foreach {
+  Source.fromInputStream(logStream).getLines().foreach {
     case lineParser(host, _, _, date, method, url, version, response, size, referer, _*) =>
       stream.update("apache-access-log", Seq(host, url, referer), ts = Some(dateParser.parse(date)))
     case l => println("not matched: '%s'".format(l))
