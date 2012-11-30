@@ -24,6 +24,7 @@ object TwitterRetweetAnalysis extends App {
 
   // create the trend
   client.create("twitter-retweets", "user:tweetid", 100000, Seq("day", "hour", "minute"))
+  // we also set a link template to directly link to the tweets
   client.setMeta("twitter-retweets", "linkTemplate", "http://twitter.com/$1/status/$2")
   val stream = client.stream()
 

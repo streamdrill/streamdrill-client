@@ -12,7 +12,7 @@
   <version>1.0</version>
   <packaging>jar</packaging>
 
-  <name>streamdrill client (scala) [${project.version}]</name>
+  <name>streamdrill scala client</name>
   <description>streamdrill client for Scala</description>
 
   <properties>

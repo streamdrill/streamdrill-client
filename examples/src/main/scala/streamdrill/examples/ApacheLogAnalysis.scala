@@ -17,7 +17,7 @@ import streamdrill.client.StreamDrillClient
 
 object ApacheLogAnalysis extends App {
   if (args.length != 1) {
-    println("usage: example-c-apache-log.scala <apache-access.log>")
+    println("usage: ApacheLogAnalysis <apache-access.log>")
     System.exit(0)
   }
 
