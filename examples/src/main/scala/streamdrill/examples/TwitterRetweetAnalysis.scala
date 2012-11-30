@@ -9,7 +9,7 @@ import streamdrill.client.{JSONParser, StreamDrillClient}
 /**
  * A simple example how to analyse retweets from Twitter.
  * This example uses our own internal proxy for retweets. In case you would like to try it alive,
- * you should try the Twitter4j-example.
+ * you should try a Twitter4j-example.
  *
  * @author Matthias L. Jugel <matthias.jugel@twimpact.com>
  */
