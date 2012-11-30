@@ -24,7 +24,7 @@ import streamdrill.client.StreamDrillClient
 object NameCombinationsExample extends App {
 
   // read the names from our file (data from US census)
-  val names = Source.fromInputStream(new GZIPInputStream(new FileInputStream("examples/data/names.csv.gz"))).getLines()
+  val names = Source.fromInputStream(new GZIPInputStream(new FileInputStream("data/names.csv.gz"))).getLines()
   val male = names.next().split(',')
   val female = names.next().split(',')
 
