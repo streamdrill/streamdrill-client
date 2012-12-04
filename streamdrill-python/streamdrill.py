@@ -19,7 +19,7 @@ import urllib
 import json
 import types
 from wsgiref.handlers import format_date_time
-from time import mktime, time
+from time import mktime
 
 
 __author__ = 'Mikio Braun <mikio.braun@twimpact.com>, Matthias Jugel <matthias.jugel@twimpact.com>'
@@ -28,7 +28,7 @@ __version__ = '1.0.0'
 
 
 def datetime2millis(dt):
-  return long(time.mktime(dt.timetuple())) * 1000 + long(dt.microsecond / 1000.0)
+  return long(mktime(dt.timetuple())) * 1000 + long(dt.microsecond / 1000.0)
 
 class StreamDrillException(Exception):
   """Base class for streamdrill related exceptions"""
@@ -57,6 +57,8 @@ class StreamDrillClient:
 
     self.AUTHORIZATION = "AUTHORIZATION"
 
+    self.debuglevel = 0
+
   def _currentDate(self):
     now = datetime.now()
     stamp = mktime(now.timetuple())
@@ -73,7 +75,8 @@ class StreamDrillClient:
     fullpath = path
     if queryparams:
       fullpath = path + "?" + queryparams
-    print "Connecting to " + fullpath
+    if self.debuglevel > 1:
+      print "Connecting to " + fullpath
     c.putrequest(method, fullpath)
     c.putheader("Date", date)
     c.putheader(self.AUTHORIZATION, "TPK %s:%s" % (self.authKey, self._sign(method, date, path, self.authSecret)))
@@ -108,12 +111,13 @@ class StreamDrillClient:
 
     Parameters:
       trend: name of the trend
-      keys:
+      keys: an array or list of keys
+      timestamp: datetime object (optional)
     """
-    quotedkeys = ":".join(map(lambda k: urllib.quote(k.encode('utf-8')), keys))
+    quotedkeys = ":".join(map(lambda k: urllib.quote(k.encode('utf-8'), ""), keys))
     path = "/1/update/%s/%s" % (trend, quotedkeys)
     if timestamp is not None:
-      queryparams = urllib.urlencode({"ts": timestamp})
+      queryparams = urllib.urlencode({"ts": datetime2millis(timestamp)})
     else:
       queryparams = ""
     c = self._connectWithAuth(path, queryparams)
@@ -147,7 +151,8 @@ class StreamDrillClient:
   def _checkStatus(self, response):
     status = response.status
     if status == 400:
-      j = json.loads(response.read())
+      r = response.read()
+      j = json.loads(r)
       raise StreamDrillException("%s: %s" % (j["error"], j["message"]))
     elif status != 200 and status != 201:
       raise StreamDrillException("Got status response %d (%s)" % (status, httplib.responses[status]))
@@ -170,20 +175,20 @@ class StreamDrillClient:
     r = self._doSimple("/1/meta/%s/%s" % (trend, key))
     return json.loads(r)["value"]
 
-  def _doSimple(self, path, qp=""):
-    c = self._connectWithAuth(path, qp)
+  def _doSimple(self, path, qp="", method="GET"):
+    c = self._connectWithAuth(path, qp, method)
     r = c.getresponse()
     if r.status != 200:
-      raise StreamDrillException("Got status " + r.status)
+      raise StreamDrillException("Got status %d (%s)" % (r.status, httplib.responses[r.status]))
     return r.read()
 
   def delete(self, trend):
     """Delete a trend."""
-    self._doSimple("/1/delete/%s" % trend)
+    self._doSimple("/1/delete/%s" % trend, method="DELETE")
 
   def clear(self, trend):
     """Remove all elements from a trend."""
-    self._doSimple("/1/clear/%s" % trend)
+    self._doSimple("/1/clear/%s" % trend, method="DELETE")
 
   def stream(self):
     """Start a streaming connection"""
