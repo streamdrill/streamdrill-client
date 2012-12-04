@@ -1,6 +1,6 @@
 #! /bin/bash
-[ $# ] && echo "usage: query [-b baseUri ] <trend>"
-if [ "$1" == "-b" ]; then BASE=$2; shift 2 else
+if [ "$#" == "0" ]; then echo "usage: query [-b baseUri ] <trend>"; exit 0; fi
+if [ "$1" == "-b" ]; then BASE=$2; shift 2; else
   BASE="http://demo.streamdrill.com"
 fi
 URL="/1/query/$1"

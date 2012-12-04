@@ -1,6 +1,6 @@
 #! /bin/bash
-[ $# ] && echo "usage: create [-b baseUri ] <trend> <entities>"
-if [ "$1" == "-h" ]; then BASE=$2; shift 2 else
+if [ "$#" == "0" ]; then echo "usage: create [-b baseUri ] <trend> <entities>"; exit 0; fi
+if [ "$1" == "-b" ]; then BASE=$2; shift 2; else
   BASE="http://demo.streamdrill.com"
 fi
 URL="/1/create/$1/$2"
