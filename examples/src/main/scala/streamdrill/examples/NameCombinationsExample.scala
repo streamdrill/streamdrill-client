@@ -35,7 +35,7 @@ object NameCombinationsExample extends App {
   println("found %d female and %d male names".format(female.length, male.length))
 
   // create a new client to access the streamdrill instance
-  val client = new StreamDrillClient("localhost:9669", ACCESS_KEY, ACCESS_SECRET)
+  val client = new StreamDrillClient("http://localhost:9669", ACCESS_KEY, ACCESS_SECRET)
 
   // create the trend
   client.create("combinations", "female:male", 100000, Seq("hour"))

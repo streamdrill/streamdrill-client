@@ -18,15 +18,20 @@ import java.util.zip.GZIPInputStream
  */
 
 object ApacheLogAnalysis extends App {
-  if (args.length != 1) {
-    println("usage: ApacheLogAnalysis <apache-access.log>")
+  if (args.length < 1) {
+    println("usage: ApacheLogAnalysis [-b url] <apache-access.log>")
     System.exit(0)
   }
 
-  val logStream = if(args(0).endsWith(".gz")) {
-    new GZIPInputStream(new FileInputStream(args(0)))
+  val (baseUrl, logfile) = args match {
+    case Array("-b", host, file) => (host, file)
+    case Array(file) => ("http://localhost:9669", file)
+  }
+
+  val logStream = if(logfile.endsWith(".gz")) {
+    new GZIPInputStream(new FileInputStream(logfile))
   } else {
-    new FileInputStream(args(0))
+    new FileInputStream(logfile)
   }
 
   // these are our demo access key and secret
@@ -39,13 +44,13 @@ object ApacheLogAnalysis extends App {
       .r
 
   // create a new client to access the streamdrill instance
-  val client = new StreamDrillClient("localhost:9669", ACCESS_KEY, ACCESS_SECRET)
+  val client = new StreamDrillClient(baseUrl, ACCESS_KEY, ACCESS_SECRET)
 
   // create the trend
   client.create("apache-access-log", "host:local:referer", 100000, Seq("day", "hour", "minute"))
   val stream = client.stream()
 
-  println("streaming log file: %s".format(args(0)))
+  println("streaming log file: %s".format(logfile))
   Source.fromInputStream(logStream).getLines().foreach {
     case lineParser(host, _, _, date, method, url, version, response, size, referer, _*) =>
       stream.update("apache-access-log", Seq(host, url, referer), ts = Some(dateParser.parse(date)))

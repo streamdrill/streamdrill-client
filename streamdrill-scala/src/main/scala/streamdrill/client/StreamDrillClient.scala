@@ -62,7 +62,7 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
 /**
  * StreamDrill client
  */
-class StreamDrillClient(host: String, apiKey: String, apiSecret: String) extends Logging {
+class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) extends Logging {
   private val AUTHORIZATION = "Authorization"
   private val DATE_RFC1123 = new ThreadLocal[DateFormat]() {
     override def initialValue() = {
@@ -83,7 +83,7 @@ class StreamDrillClient(host: String, apiKey: String, apiSecret: String) extends
 
   private def connectWithAuth(method: String, path: String, queryparams: String = ""): HttpURLConnection = {
     val date = DATE_RFC1123.get.format(new Date)
-    val c = new URL("http://%s%s?%s".format(host, path, queryparams)).openConnection.asInstanceOf[HttpURLConnection]
+    val c = new URL("%s%s?%s".format(serverUrl, path, queryparams)).openConnection.asInstanceOf[HttpURLConnection]
     c.setRequestMethod(method)
     c.setRequestProperty("Date", date)
     c.setRequestProperty(AUTHORIZATION, "TPK %s:%s".format(apiKey, sign(method, date, path, apiSecret)))
@@ -136,7 +136,7 @@ class StreamDrillClient(host: String, apiKey: String, apiSecret: String) extends
    * @return       return string (just some non-formatted text)
    */
   def update(trend: String, keys: Seq[String], value: Option[Long] = None, ts: Option[Date] = None) = {
-    val base = "http://%s/1/update/%s/%s".format(host, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
+    val base = "%s/1/update/%s/%s".format(serverUrl, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
     val url = new StringBuilder(base)
     ts match {
       case Some(d) if (value.isDefined) =>
@@ -178,7 +178,7 @@ class StreamDrillClient(host: String, apiKey: String, apiSecret: String) extends
    * @return a client stream object
    */
   def stream(): StreamDrillClientStream = {
-    val c = connectWithAuth("POST", "/1/update".format(host))
+    val c = connectWithAuth("POST", "/1/update")
     c.setDoOutput(true)
 
     new StreamDrillClientStream(c)

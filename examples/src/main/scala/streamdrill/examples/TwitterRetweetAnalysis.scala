@@ -20,7 +20,7 @@ object TwitterRetweetAnalysis extends App {
   val ACCESS_SECRET = "9e13e4ac-ad93-4c8f-a896-d5a937b84c8a"
 
   // create a new client to access the streamdrill instance
-  val client = new StreamDrillClient("localhost:9669", ACCESS_KEY, ACCESS_SECRET)
+  val client = new StreamDrillClient("http://localhost:9669", ACCESS_KEY, ACCESS_SECRET)
 
   // create the trend
   client.create("twitter-retweets", "user:tweetid", 100000, Seq("day", "hour", "minute"))

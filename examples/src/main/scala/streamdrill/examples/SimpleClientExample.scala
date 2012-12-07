@@ -18,7 +18,7 @@ object SimpleClientExample extends App {
   val TREND = "users"
 
   // create a new client to access the streamdrill instance
-  val client = new StreamDrillClient("localhost:9669", ACCESS_KEY, ACCESS_SECRET)
+  val client = new StreamDrillClient("http://localhost:9669", ACCESS_KEY, ACCESS_SECRET)
 
   // create a new trend "user_retweet" with a singel entity "user" that
   // has a size of 10.000 and a single time scale of one week
