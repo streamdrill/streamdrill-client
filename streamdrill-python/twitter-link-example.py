@@ -38,6 +38,7 @@ c = StreamDrillClient("localhost:9669", key, secret)
 # The reason we're storing host and path seperately is because this allows
 # us to filter for the host.
 c.create("twitter-links", "host:path", 10000, ("day", "hour", "minute"))
+c.clear("twitter-links")
 
 # This will create a link-out button linking to the real-time search page
 # of Twitter for that link. Works like a charm (well, mostly)
@@ -105,4 +106,4 @@ for tweet in ts.statuses.sample():
           analyzeurl("twitter-links", url['expanded_url'], now)
           updates += 1
     except Exception as e:
-      print "Got error %s for entities %s" % (str(e), entities)
+      print "Got error %s for tweet %s" % (str(e), tweet)
