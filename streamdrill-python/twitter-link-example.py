@@ -13,6 +13,7 @@ links contained. Instant Twitter link trender!
 from twitter import *
 from streamdrill import StreamDrillClient
 import datetime, email.utils, sys
+import urlparse
 
 # alright, spammers, here's where you'll want to go... ;)
 __author__ = 'Mikio Braun <mikio@twimpact.com>'
@@ -31,7 +32,7 @@ if len(sys.argv) != 3:
 key = "f9aaf865-b89a-444d-9070-38ec6666e539"
 secret = "9e13e4ac-ad93-4c8f-a896-d5a937b84c8a"
 
-c = StreamDrillClient("localhost:9669", key, secret)
+c = StreamDrillClient("http://localhost:9669", key, secret)
 
 # Create a trend.
 #
@@ -50,22 +51,11 @@ def parsedate(ds):
 # Ok, extract the path and host part of the URL (by hand, I know, I know),
 # and update the trend.
 def analyzeurl(trend, url, ts):
-  if url == None:
-    return
-  if url.startswith("http://"):
-    start = 7
-  elif url.startswith("https://"):
-    start = 8
-  else:
-    return
-  i = url[start:].find("/")
-  if i == -1:
-    site = url[start:]
+  p = urlparse.urlparse(url)
+  site = p.netloc
+  path = p.path
+  if not path:
     path = "/"
-  else:
-    site = url[start:start+i]
-    path = url[start+i:]
-  #print("Updating %s %s at %s" % (site, path, ts))
   c.update(trend, (site, path), timestamp=ts)
 
 #
@@ -103,7 +93,11 @@ for tweet in ts.statuses.sample():
       if 'urls' in entities:
         urls = entities['urls']
         for url in urls:
-          analyzeurl("twitter-links", url['expanded_url'], now)
-          updates += 1
+          if url['expanded_url']:
+            analyzeurl("twitter-links", url['expanded_url'], now)
+            updates += 1
+    except IOError, e:
+      if e.errno == 111:
+        sys.exit()
     except Exception as e:
       print "Got error %s for tweet %s" % (str(e), tweet)
