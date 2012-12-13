@@ -45,12 +45,6 @@
       <version>${scala.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-compiler</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.clapper</groupId>
       <artifactId>grizzled-slf4j_${scala.version}</artifactId>
       <version>${grizzled.version}</version>
