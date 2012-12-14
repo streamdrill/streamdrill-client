@@ -20,6 +20,7 @@ import json
 import types
 from wsgiref.handlers import format_date_time
 from time import mktime
+import urlparse
 
 
 __author__ = 'Mikio Braun <mikio.braun@twimpact.com>, Matthias Jugel <matthias.jugel@twimpact.com>'
@@ -50,8 +51,11 @@ class StreamDrillClient:
   * stream - open streaming connection
   * setMeta/getMeta - access meta information on trends
   """
-  def __init__(self, host, authKey, authSecret):
-    self.host = host
+  def __init__(self, serverUrl, authKey, authSecret):
+    self.serverUrl = serverUrl
+    self.url = urlparse.urlparse(serverUrl)
+    self.host = self.url.netloc
+    self.basepath = self.url.path
     self.authKey = authKey
     self.authSecret = authSecret
 
@@ -72,14 +76,15 @@ class StreamDrillClient:
   def _connectWithAuth(self, path, queryparams="", method="GET"):
     c = httplib.HTTPConnection(self.host)
     date = self._currentDate()
-    fullpath = path
+    signpath = self.basepath + path
+    fullpath = self.basepath + path
     if queryparams:
-      fullpath = path + "?" + queryparams
-    if self.debuglevel > 1:
+      fullpath += "?" + queryparams
+    if self.debuglevel > 0:
       print "Connecting to " + fullpath
     c.putrequest(method, fullpath)
     c.putheader("Date", date)
-    c.putheader(self.AUTHORIZATION, "TPK %s:%s" % (self.authKey, self._sign(method, date, path, self.authSecret)))
+    c.putheader(self.AUTHORIZATION, "TPK %s:%s" % (self.authKey, self._sign(method, date, signpath, self.authSecret)))
     c.endheaders()
     return c
 
@@ -194,7 +199,7 @@ class StreamDrillClient:
     """Start a streaming connection"""
     c = httplib.HTTPConnection(self.host)
     date = self._currentDate()
-    path = "/1/update"
+    path = self.basepath + "/1/update"
     #c.set_debuglevel(10)
     c.putrequest("POST", path)
     c.putheader("Content-type", "text/tab-separated-values")
@@ -245,7 +250,8 @@ if __name__ == "__main__":
   key = "f9aaf865-b89a-444d-9070-38ec6666e539"
   secret = "9e13e4ac-ad93-4c8f-a896-d5a937b84c8a"
 
-  c = StreamDrillClient("localhost:9669", key, secret)
+  c = StreamDrillClient("http://localhost:9669/blah", key, secret)
+  c.debuglevel = 10
   trend = "test-trend"
   apitoken = c.create(trend, "user:song", 100, "hour")
   print apitoken
