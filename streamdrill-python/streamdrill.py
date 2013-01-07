@@ -51,7 +51,8 @@ class StreamDrillClient:
   * stream - open streaming connection
   * setMeta/getMeta - access meta information on trends
   """
-  def __init__(self, serverUrl, authKey, authSecret):
+  def __init__(self, serverUrl, authKey="f9aaf865-b89a-444d-9070-38ec6666e539", authSecret="9e13e4ac-ad93-4c8f-a896-d5a937b84c8a"):
+    serverUrl = serverUrl.strip('/')
     self.serverUrl = serverUrl
     self.url = urlparse.urlparse(serverUrl)
     self.host = self.url.netloc
@@ -247,10 +248,7 @@ if __name__ == "__main__":
   #
   # run some simple tests.
   #
-  key = "f9aaf865-b89a-444d-9070-38ec6666e539"
-  secret = "9e13e4ac-ad93-4c8f-a896-d5a937b84c8a"
-
-  c = StreamDrillClient("http://localhost:9669/blah", key, secret)
+  c = StreamDrillClient("http://localhost:9669")
   c.debuglevel = 10
   trend = "test-trend"
   apitoken = c.create(trend, "user:song", 100, "hour")
