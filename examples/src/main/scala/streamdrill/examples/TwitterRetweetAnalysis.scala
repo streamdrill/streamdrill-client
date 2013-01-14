@@ -22,6 +22,9 @@ object TwitterRetweetAnalysis extends App {
   // create a new client to access the streamdrill instance
   val client = new StreamDrillClient("http://localhost:9669", ACCESS_KEY, ACCESS_SECRET)
 
+  // delete trend if -d is given on the command line
+  if(args.length > 0 && args(0) == "-d") client.delete("twitter-retweets")
+
   // create the trend
   client.create("twitter-retweets", "user:tweetid", 100000, Seq("day", "hour", "minute"))
   // we also set a link template to directly link to the tweets
