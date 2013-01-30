@@ -22,14 +22,22 @@ object TwitterRetweetAnalysis extends App {
   // create a new client to access the streamdrill instance
   val client = new StreamDrillClient("http://localhost:9669", ACCESS_KEY, ACCESS_SECRET)
 
+  var params = args
+
+  // delete trend if -d is given on the command line
+  if(params.length > 0 && params(0) == "-d") {
+    client.delete("twitter-retweets")
+    params = params.drop(1)
+  }
+
   // create the trend
   client.create("twitter-retweets", "user:tweetid", 100000, Seq("day", "hour", "minute"))
   // we also set a link template to directly link to the tweets
   client.setMeta("twitter-retweets", "linkTemplate", "http://twitter.com/$1/status/$2")
   val stream = client.stream()
 
-  val auth = new String(Base64.encodeBase64("%s:%s".format(args(0), args(1)).getBytes("UTF-8")))
-  val c = new URL("http://localhost:9999/1/stream/retweets/range.json?start=%s".format(args(2))).openConnection
+  val auth = new String(Base64.encodeBase64("%s:%s".format(params(0), params(1)).getBytes("UTF-8")))
+  val c = new URL("http://localhost:9999/1/stream/retweets/range.json?start=%s".format(params(2))).openConnection
       .asInstanceOf[HttpURLConnection]
   c.setRequestMethod("POST")
   c.setRequestProperty("Authorization", "Basic %s".format(auth))
