@@ -96,6 +96,10 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     Source.fromInputStream(c.getInputStream).getLines().mkString("\n")
   }
 
+  private def readJSONResponse(c: HttpURLConnection): JSONObject =
+    JSONParser.parse(readResponseWithTimeouts(c))
+
+
   private var tokens: Map[String, String] = Map()
 
   /**
@@ -110,13 +114,12 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     val path = "/1/create/%s/%s".format(trend, entity)
     val query = "size=%d&timescales=%s".format(size, URLEncoder.encode(timescales.mkString(","), "UTF-8"))
     val urlCon = connectWithAuth("GET", path, query)
-    urlCon.setConnectTimeout(2000)
-    urlCon.setReadTimeout(20000)
 
-    val response = Source.fromInputStream(urlCon.getInputStream).getLines().mkString("\n")
+    val json = readJSONResponse(urlCon)
+
     val status = urlCon.getResponseCode
-    debug("create(%s, %s, %d) => %d, '%s'".format(trend, entity, size, status, response))
-    val json = JSONParser.parse(response)
+    debug("create(%s, %s, %d) => %d, '%s'".format(trend, entity, size, status, json))
+
     if (status != HTTP_OK && status != HTTP_CREATED)
       throw new java.io.IOException("Return code %d on trend creation".format(status))
 
@@ -135,7 +138,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    * @param ts     a time stamp for the object event (optional)
    * @return       return string (just some non-formatted text)
    */
-  def update(trend: String, keys: Seq[String], value: Option[Long] = None, ts: Option[Date] = None) = {
+  def update(trend: String, keys: Seq[String], value: Option[Double] = None, ts: Option[Date] = None): String = {
     val base = "%s/1/update/%s/%s".format(serverUrl, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
     val url = new StringBuilder(base)
     ts match {
@@ -144,16 +147,14 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
       case Some(d) if (value.isEmpty) =>
         url.append("?").append("ts=%d".format(ts.get.getTime))
       case None if (value.isDefined) =>
-        url.append("?").append("v=%d".format(value.get))
+        url.append("?").append("v=%f".format(value.get))
       case None =>
       // neither value nor timestamp declared
     }
 
-    val urlCon = new URL(url.toString()).openConnection()
-    urlCon.setConnectTimeout(2000)
-    urlCon.setReadTimeout(20000)
+    val urlCon = new URL(url.toString()).openConnection().asInstanceOf[HttpURLConnection]
     urlCon.setRequestProperty("Authorization", "APITOKEN " + tokens(trend))
-    Source.fromInputStream(urlCon.getInputStream).getLines().mkString("\n")
+    readResponseWithTimeouts(urlCon)
   }
 
   /**
@@ -168,8 +169,15 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
         .mkString("&")
 
     val c = connectWithAuth("GET", path, qp)
-    val json = JSONParser.parse(readResponseWithTimeouts(c))
+    val json = readJSONResponse(c)
     (0 until json.length).map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i).getDouble("score")))
+  }
+
+  def score(trend: String, keys: Seq[String], ts: Option[Date] = None, timescale: Option[String]=None): Double = {
+    val path = "/1/score/" + trend + "/" + keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":")
+    val c = connectWithAuth("GET", path)
+    val json = readJSONResponse(c)
+    json.getDouble("score")
   }
 
   /**
@@ -193,10 +201,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    */
   def setMeta(trend: String, property: String, value: String) {
     val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property), "value=" + URLEncoder.encode(value, "UTF-8"))
-    c.setConnectTimeout(2000)
-    c.setReadTimeout(20000)
-
-    Source.fromInputStream(c.getInputStream).getLines().mkString("\n") //c.disconnect()
+    readResponseWithTimeouts(c)
   }
 
   /**
@@ -208,10 +213,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    */
   def getMeta(trend: String, property: String): String = {
     val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property))
-    c.setConnectTimeout(2000)
-    c.setReadTimeout(20000)
-
-    JSONParser.parse(Source.fromInputStream(c.getInputStream).getLines().mkString("\n")).getString("value")
+    readJSONResponse(c).getString("value")
   }
 
 
