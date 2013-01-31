@@ -46,4 +46,16 @@ object SimpleClientExample extends App {
   // let's query the data now (this may also be done concurrently during updating)
   val trend = client.query(TREND)
   println(trend.map(entry => "%10d - %s".format(math.round(entry._2), entry._1.mkString)).mkString("\r\n"))
+
+  println()
+  println("single score query for justin")
+  // try a single score query
+  val score = client.score(TREND, Seq("justin"))
+  println("%10d - %s".format(math.round(score), "justin"))
+
+  println()
+  println("single score query for frank and paul")
+  // try the score method that will provide scores for single entries
+  val scores = client.scores(TREND, Seq(Seq("frank"), Seq("paul")))
+  println(scores.map(entry => "%10d - %s".format(math.round(entry._2), entry._1.mkString)).mkString("\r\n"))
 }

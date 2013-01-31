@@ -158,7 +158,14 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
   }
 
   /**
-   * query the timescale
+   * Query the trend and return a top-n list with scores.
+   *
+   * @param trend     name of the trend
+   * @param count     the number of elements to return
+   * @param offset    the offset within the total trend to start from
+   * @param timescale the timescale to query (day, hour or minute for example)
+   * @param filter    a filter of entities key pairs to only return values for
+   * @return          a list of top-n entities and their scores
    */
   def query(trend: String, count: Int = 20, offset: Int = 0, timescale: Option[String] = None, filter: Map[String, String] = Map()): Seq[(Seq[String], Double)] = {
     val path = "/1/query/" + trend
@@ -170,14 +177,46 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
 
     val c = connectWithAuth("GET", path, qp)
     val json = readJSONResponse(c)
-    (0 until json.length).map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i).getDouble("score")))
+    (0 until json.length)
+        .map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i)
+        .getDouble("score")))
   }
 
-  def score(trend: String, keys: Seq[String], ts: Option[Date] = None, timescale: Option[String]=None): Double = {
-    val path = "/1/score/" + trend + "/" + keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":")
-    val c = connectWithAuth("GET", path)
+  /**
+   * Query a score for keys.
+   *
+   * @param trend     name of the trend
+   * @param keys      the keys to query
+   * @param ts        an optional time stamp
+   * @param timescale an optional timescale
+   */
+  def score(trend: String, keys: Seq[String], ts: Option[Date] = None, timescale: Option[String] = None): Double = {
+    val path = "/1/query/" + trend + "/score"
+    val c = connectWithAuth("POST", path)
+    c.setDoOutput(true)
+    c.getOutputStream().write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
     val json = readJSONResponse(c)
-    json.getDouble("score")
+    json.get(0).getDouble("score")
+  }
+
+  /**
+   * Query a score for a list of keys.
+   *
+   * @param trend     name of the trend
+   * @param keys      the list of keys to query
+   * @param ts        an optional time stamp
+   * @param timescale an optional timescale
+   */
+  def scores(trend: String, keys: Seq[Seq[String]], ts: Option[Date] = None, timescale: Option[String] = None): Seq[(Seq[String], Double)] = {
+    val path = "/1/query/" + trend + "/score"
+    val c = connectWithAuth("POST", path)
+    c.setDoOutput(true)
+    c.getOutputStream()
+        .write(keys.map(_.map(URLEncoder.encode(_, "UTF-8")).mkString(":")).mkString("\n").getBytes("UTF-8"))
+    val json = readJSONResponse(c)
+    (0 until json.length)
+        .map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i)
+        .getDouble("score")))
   }
 
   /**
@@ -200,7 +239,8 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    * @param value value of the meta-property
    */
   def setMeta(trend: String, property: String, value: String) {
-    val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property), "value=" + URLEncoder.encode(value, "UTF-8"))
+    val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property), "value=" + URLEncoder
+        .encode(value, "UTF-8"))
     readResponseWithTimeouts(c)
   }
 
