@@ -3,7 +3,7 @@ streamdrill-client
 
 stream<b>drill</b> client library and examples
 
-Download your own evaluation copy from see http://streamdrill.com/
+Download your own evaluation copy from http://streamdrill.com/ (select Download option)
 After download to run it:
 
     $ java -Xmx2G -jar streamdrill.jar
