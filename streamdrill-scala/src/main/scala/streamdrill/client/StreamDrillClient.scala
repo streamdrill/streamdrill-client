@@ -34,11 +34,11 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
   def update(trend: String, keys: Seq[String], value: Option[Long] = None, ts: Option[Date] = None) {
     val message = ts match {
       case Some(d) if (value.isDefined) =>
-        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get, "ts" -> ts.get.getTime))
+        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get.toDouble, "ts" -> ts.get.getTime))
       case Some(d) if (value.isEmpty) =>
         JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "ts" -> ts.get.getTime))
       case None if (value.isDefined) =>
-        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get))
+        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get.toDouble))
       case None =>
         JSONWriter.toJSON(Map("t" -> trend, "k" -> keys))
     }
