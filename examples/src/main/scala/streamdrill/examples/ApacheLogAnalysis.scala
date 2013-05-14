@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat
 import streamdrill.client.StreamDrillClient
 import java.io.FileInputStream
 import java.util.zip.GZIPInputStream
+import java.util.Locale
 
 /**
  * A more practical example that parses an apache http log-file and streams the
@@ -22,13 +23,14 @@ object ApacheLogAnalysis extends App {
     println("usage: ApacheLogAnalysis [-b url] <apache-access.log>")
     System.exit(0)
   }
+  Locale.setDefault(Locale.US)
 
   val (baseUrl, logfile) = args match {
     case Array("-b", host, file) => (host, file)
     case Array(file) => ("http://localhost:9669", file)
   }
 
-  val logStream = if(logfile.endsWith(".gz")) {
+  val logStream = if (logfile.endsWith(".gz")) {
     new GZIPInputStream(new FileInputStream(logfile))
   } else {
     new FileInputStream(logfile)
@@ -47,13 +49,13 @@ object ApacheLogAnalysis extends App {
   val client = new StreamDrillClient(baseUrl, ACCESS_KEY, ACCESS_SECRET)
 
   // create the trend
-  client.create("apache-access-log", "host:local:referer", 100000, Seq("day", "hour", "minute"))
+  client.create("apache-access-log", "host:local:response", 100000, Seq("day", "hour", "minute"))
   val stream = client.stream()
 
   println("streaming log file: %s".format(logfile))
   Source.fromInputStream(logStream).getLines().foreach {
     case lineParser(host, _, _, date, method, url, version, response, size, referer, _*) =>
-      stream.update("apache-access-log", Seq(host, url, referer), ts = Some(dateParser.parse(date)))
+      stream.update("apache-access-log", Seq(host, url, response), ts = Some(dateParser.parse(date)))
     case l => println("not matched: '%s'".format(l))
   }
 
