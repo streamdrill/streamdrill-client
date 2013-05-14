@@ -19,9 +19,10 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <commons-codec.version>1.7</commons-codec.version>
     <json-smart.version>1.1.1</json-smart.version>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.10.0</scala.version>
+    <scala.version.grizzled>2.10</scala.version.grizzled>
     <logback.version>1.0.7</logback.version>
-    <grizzled.version>0.6.10</grizzled.version>
+    <grizzled.version>1.0.1</grizzled.version>
     <junit.version>4.10</junit.version>
   </properties>
 
@@ -46,7 +47,7 @@
     </dependency>
     <dependency>
       <groupId>org.clapper</groupId>
-      <artifactId>grizzled-slf4j_${scala.version}</artifactId>
+      <artifactId>grizzled-slf4j_${scala.version.grizzled}</artifactId>
       <version>${grizzled.version}</version>
     </dependency>
     <dependency>
@@ -89,9 +90,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <scalaClassName>scala.tools.nsc.CompileClient</scalaClassName>
-        </configuration>
       </plugin>
     </plugins>
   </build>
