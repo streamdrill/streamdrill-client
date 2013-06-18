@@ -62,7 +62,10 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
 /**
  * StreamDrill client
  */
-class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) extends Logging {
+class StreamDrillClient(serverUrl: String,
+                        apiKey: String="f9aaf865-b89a-444d-9070-38ec6666e539",
+                        apiSecret: String="9e13e4ac-ad93-4c8f-a896-d5a937b84c8a")
+    extends Logging {
   private val AUTHORIZATION = "Authorization"
   private val DATE_RFC1123 = new ThreadLocal[DateFormat]() {
     override def initialValue() = {
@@ -81,9 +84,13 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     Base64.encodeBase64String(mac.doFinal(message.getBytes("UTF-8")))
   }
 
-  private def connectWithAuth(method: String, path: String, queryparams: String = ""): HttpURLConnection = {
+  private def connectWithAuth(method: String, path: String, queryparams: Map[String, Any] = Map()): HttpURLConnection = {
     val date = DATE_RFC1123.get.format(new Date)
-    val c = new URL("%s%s?%s".format(serverUrl, path, queryparams)).openConnection.asInstanceOf[HttpURLConnection]
+    val formattedQueryParams = if(queryparams.isEmpty)
+          ""
+        else
+          ("?" + queryparams.map(kv => kv._1 + "=" + kv._2).mkString("&"))
+    val c = new URL(serverUrl + path + formattedQueryParams).openConnection.asInstanceOf[HttpURLConnection]
     c.setRequestMethod(method)
     c.setRequestProperty("Date", date)
     c.setRequestProperty(AUTHORIZATION, "TPK %s:%s".format(apiKey, sign(method, date, path, apiSecret)))
@@ -112,7 +119,8 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    */
   def create(trend: String, entity: String, size: Int, timescales: Seq[String]): (String, Boolean) = {
     val path = "/1/create/%s/%s".format(trend, entity)
-    val query = "size=%d&timescales=%s".format(size, URLEncoder.encode(timescales.mkString(","), "UTF-8"))
+    //val query = "size=%d&timescales=%s".format(size, URLEncoder.encode(timescales.mkString(","), "UTF-8"))
+    val query = Map("size" -> size, "timescales" -> URLEncoder.encode(timescales.mkString(","), "UTF-8"))
     val urlCon = connectWithAuth("GET", path, query)
 
     val json = readJSONResponse(urlCon)
@@ -138,12 +146,12 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    * @param ts     a time stamp for the object event (optional)
    * @return       return string (just some non-formatted text)
    */
-  def update(trend: String, keys: Seq[String], value: Option[Double] = None, ts: Option[Date] = None): String = {
+  def update(trend: String, keys: Seq[String], ts: Option[Date] = None, value: Option[Double] = None): String = {
     val base = "%s/1/update/%s/%s".format(serverUrl, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
     val url = new StringBuilder(base)
     ts match {
       case Some(d) if (value.isDefined) =>
-        url.append("?").append("v=%d&ts=%d".format(value.get, ts.get.getTime))
+        url.append("?").append("v=%f&ts=%d".format(value.get, ts.get.getTime))
       case Some(d) if (value.isEmpty) =>
         url.append("?").append("ts=%d".format(ts.get.getTime))
       case None if (value.isDefined) =>
@@ -169,11 +177,15 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    */
   def query(trend: String, count: Int = 20, offset: Int = 0, timescale: Option[String] = None, filter: Map[String, String] = Map()): Seq[(Seq[String], Double)] = {
     val path = "/1/query/" + trend
-    var qp = "count=" + count
-    if (offset != 0) qp += "&offset=" + offset
-    if (timescale.isDefined) qp += "&timescale=" + timescale.get
-    if (!filter.isEmpty) qp += "&" + filter.map(kv => "%s=%s".format(kv._1, URLEncoder.encode(kv._2, "UTF-8")))
-        .mkString("&")
+    //var qp = "count=" + count
+    //if (offset != 0) qp += "&offset=" + offset
+    //if (timescale.isDefined) qp += "&timescale=" + timescale.get
+    //if (!filter.isEmpty) qp += "&" + filter.map(kv => "%s=%s".format(kv._1, URLEncoder.encode(kv._2, "UTF-8")))
+    //    .mkString("&")
+    var qp = Map[String,Any]("count" -> count)
+    if (offset != 0) qp += "offset" -> offset
+    if (timescale.isDefined) qp += "timescale" -> timescale.get
+    if (!filter.isEmpty) qp ++= filter.map(kv  => (kv._1, URLEncoder.encode(kv._2, "UTF-8")))
 
     val c = connectWithAuth("GET", path, qp)
     val json = readJSONResponse(c)
@@ -187,14 +199,15 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    *
    * @param trend     name of the trend
    * @param keys      the keys to query
-   * @param ts        an optional time stamp
+   * @param ts        an optional tme stamp
    * @param timescale an optional timescale
    */
   def score(trend: String, keys: Seq[String], ts: Option[Date] = None, timescale: Option[String] = None): Double = {
     val path = "/1/query/" + trend + "/score"
-    val c = connectWithAuth("POST", path)
+    val qp = ts.map(("ts" -> _.getTime)).toMap
+    val c = connectWithAuth("POST", path, qp)
     c.setDoOutput(true)
-    c.getOutputStream().write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
+    c.getOutputStream.write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
     val json = readJSONResponse(c)
     json.get(0).getDouble("score")
   }
@@ -211,12 +224,13 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     val path = "/1/query/" + trend + "/score"
     val c = connectWithAuth("POST", path)
     c.setDoOutput(true)
-    c.getOutputStream()
+    c.getOutputStream
         .write(keys.map(_.map(URLEncoder.encode(_, "UTF-8")).mkString(":")).mkString("\n").getBytes("UTF-8"))
     val json = readJSONResponse(c)
-    (0 until json.length)
-        .map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i)
-        .getDouble("score")))
+    (0 until json.length).map { i =>
+      (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala.toIndexedSeq,
+          json.get(i).getDouble("score"))
+    }
   }
 
   /**
@@ -239,8 +253,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
    * @param value value of the meta-property
    */
   def setMeta(trend: String, property: String, value: String) {
-    val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property), "value=" + URLEncoder
-        .encode(value, "UTF-8"))
+    val c = connectWithAuth("GET", "/1/meta/%s/%s".format(trend, property), Map("value" -> URLEncoder.encode(value, "UTF-8")))
     readResponseWithTimeouts(c)
   }
 

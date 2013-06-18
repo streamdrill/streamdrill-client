@@ -154,6 +154,19 @@ class StreamDrillClient:
     j = json.loads(response)
     return map(lambda kv: (kv["keys"], kv["score"]), j)
 
+  def score(self, trend, keys, timescale=None, ts=-1):
+    """Query the score of one or more keys
+
+    Parameters:
+      trend: name of the trend
+      keys: List of keys to query
+
+    Keyword arguments:
+      timescale: select timescale (default: first one)
+      ts: timestamp of the query (default: now)"""
+    c = self._connectWithAuth("/1/query/%s/score" % trend, method="POST")
+    c.putrequest()
+
   def _checkStatus(self, response):
     status = response.status
     if status == 400:
