@@ -31,14 +31,14 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
    * @param value  a predefined value to be used (optional)
    * @param ts     a time stamp for the object event (optional)
    */
-  def update(trend: String, keys: Seq[String], value: Option[Long] = None, ts: Option[Date] = None) {
+  def update(trend: String, keys: Seq[String], value: Option[Double] = None, ts: Option[Date] = None) {
     val message = ts match {
       case Some(d) if value.isDefined =>
-        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get.toDouble, "ts" -> ts.get.getTime))
+        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get, "ts" -> ts.get.getTime))
       case Some(d) if value.isEmpty =>
         JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "ts" -> ts.get.getTime))
       case None if value.isDefined =>
-        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get.toDouble))
+        JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get))
       case None =>
         JSONWriter.toJSON(Map("t" -> trend, "k" -> keys))
     }
@@ -142,11 +142,11 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     val base = "%s/1/update/%s/%s".format(serverUrl, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
     val url = new StringBuilder(base)
     ts match {
-      case Some(d) if (value.isDefined) =>
-        url.append("?").append("v=%d&ts=%d".format(value.get, ts.get.getTime))
-      case Some(d) if (value.isEmpty) =>
+      case Some(d) if value.isDefined =>
+        url.append("?").append("v=%f&ts=%d".format(value.get, ts.get.getTime))
+      case Some(d) if value.isEmpty =>
         url.append("?").append("ts=%d".format(ts.get.getTime))
-      case None if (value.isDefined) =>
+      case None if value.isDefined =>
         url.append("?").append("v=%f".format(value.get))
       case None =>
       // neither value nor timestamp declared
@@ -194,7 +194,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     val path = "/1/query/" + trend + "/score"
     val c = connectWithAuth("POST", path)
     c.setDoOutput(true)
-    c.getOutputStream().write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
+    c.getOutputStream.write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
     val json = readJSONResponse(c)
     json.get(0).getDouble("score")
   }
@@ -211,7 +211,7 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
     val path = "/1/query/" + trend + "/score"
     val c = connectWithAuth("POST", path)
     c.setDoOutput(true)
-    c.getOutputStream()
+    c.getOutputStream
         .write(keys.map(_.map(URLEncoder.encode(_, "UTF-8")).mkString(":")).mkString("\n").getBytes("UTF-8"))
     val json = readJSONResponse(c)
     (0 until json.length)
