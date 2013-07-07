@@ -17,11 +17,35 @@ import java.text.{DateFormat, SimpleDateFormat}
  *
  * @param conn connection used for streaming the data
  */
-class StreamDrillClientStream(conn: HttpURLConnection) {
+class StreamDrillClientStream(conn: HttpURLConnection) extends Logging {
   conn.addRequestProperty("Content-type", "application/json")
   conn.setChunkedStreamingMode(8192)
 
   private val os = conn.getOutputStream
+
+  private var lastWrittenTimestamp = System.nanoTime()
+  val keepAliveMonitor = new Runnable {
+    var alive = true
+
+    def run() {
+      info("setting up keepalive monitor for %s".format(conn.getURL))
+
+      while (alive) {
+        Thread.sleep(10000L)
+        if (System.nanoTime - lastWrittenTimestamp > 10e9) {
+          lastWrittenTimestamp = System.nanoTime()
+          try {
+            os.write("\n".getBytes("UTF-8"))
+            os.flush()
+          } catch {
+            case e: Exception => alive = false
+          }
+        }
+      }
+      info("keepalive monitor exited: %s".format(conn.getURL))
+    }
+  }
+  new Thread(keepAliveMonitor).start()
 
   /**
    * Update an item
@@ -32,6 +56,7 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
    * @param ts     a time stamp for the object event (optional)
    */
   def update(trend: String, keys: Seq[String], value: Option[Double] = None, ts: Option[Date] = None) {
+    lastWrittenTimestamp = System.nanoTime()
     val message = ts match {
       case Some(d) if value.isDefined =>
         JSONWriter.toJSON(Map("t" -> trend, "k" -> keys, "v" -> value.get, "ts" -> ts.get.getTime))
@@ -52,6 +77,7 @@ class StreamDrillClientStream(conn: HttpURLConnection) {
    * @return some random information string, currently of the form "%d updates, %d updates/s".
    */
   def done(): (Long, Double) = {
+    try {keepAliveMonitor.alive = false} catch {case _: Throwable => /* simply ignore it */}
     os.close()
     val result = JSONParser.parse(Source.fromInputStream(conn.getInputStream).mkString)
     (result.getLong("updates"), result.getDouble("rate"))
