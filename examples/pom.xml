@@ -65,7 +65,7 @@
           </execution>
         </executions>
         <configuration>
-          <scalaClassName>scala.tools.nsc.CompileClient</scalaClassName>
+          <!--<scalaClassName>scala.tools.nsc.CompileClient</scalaClassName>-->
           <args>
             <arg>-unchecked</arg>
             <arg>-deprecation</arg>
