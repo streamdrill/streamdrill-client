@@ -202,7 +202,8 @@ class StreamDrillClient(serverUrl: String, apiKey: String, apiSecret: String) ex
         .mkString("&")
 
     val c = connectWithAuth("GET", path, qp)
-    val json = readJSONResponse(c)
+    val jsonResponse = readJSONResponse(c)
+    val json = jsonResponse.get("trend")
     (0 until json.length)
         .map(i => (json.get(i).getArray("keys").asInstanceOf[java.util.List[String]].asScala, json.get(i)
         .getDouble("score")))
