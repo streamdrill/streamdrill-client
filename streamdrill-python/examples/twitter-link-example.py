@@ -2,6 +2,9 @@
 # encoding=utf-8
 
 """
+Sorry, demo is broken for now, you'd need to set up your keys with OAuth.
+See here: https://github.com/sixohsix/twitter#working-with-oauth
+
 Uses the twitter module by http://mike.verdone.ca/twitter/
 
 Easiest way to install that module is with `easy_install twitter`.
@@ -10,10 +13,15 @@ Looks at the entities in a tweet and extracts the host and path for the
 links contained. Instant Twitter link trender!
 """
 
-from twitter import *
-from streamdrill import StreamDrillClient
-import datetime, email.utils, sys
+import email.utils
+import sys
 import urlparse
+
+from twitter import *
+
+from streamdrill import StreamDrillClient
+import datetime
+
 
 # alright, spammers, here's where you'll want to go... ;)
 __author__ = 'Mikio Braun <mikio@twimpact.com>'
@@ -22,11 +30,11 @@ __author__ = 'Mikio Braun <mikio@twimpact.com>'
 # main
 #
 if len(sys.argv) != 3:
-  print """Usage:
+    print """Usage:
 
   %s username password
   """ % sys.argv[0]
-  exit(0)
+    exit(0)
 
 # set up trends. These are the default API access codes for the demo instance.
 key = "f9aaf865-b89a-444d-9070-38ec6666e539"
@@ -45,18 +53,20 @@ c.clear("twitter-links")
 # of Twitter for that link. Works like a charm (well, mostly)
 c.setMeta("twitter-links", "linkTemplate", "http://twitter.com/search/realtime?q=http://$1$2")
 
+
 def parsedate(ds):
-  return datetime.datetime(*email.utils.parsedate(ds)[:6])
+    return datetime.datetime(*email.utils.parsedate(ds)[:6])
+
 
 # Ok, extract the path and host part of the URL (by hand, I know, I know),
 # and update the trend.
 def analyzeurl(trend, url, ts):
-  p = urlparse.urlparse(url)
-  site = p.netloc
-  path = p.path
-  if not path:
-    path = "/"
-  c.update(trend, (site, path), timestamp=ts)
+    p = urlparse.urlparse(url)
+    site = p.netloc
+    path = p.path
+    if not path:
+        path = "/"
+    c.update(trend, (site, path), timestamp=ts)
 
 #
 # Main
@@ -72,32 +82,32 @@ updates = 0
 print "Connecting to Twitter stream..."
 ts = TwitterStream(auth=UserPassAuth(user, password))
 for tweet in ts.statuses.sample():
-  if count == 0:
-    print "Ok, streaming..."
-    print "Hit CTRL-C to stop!"
-  count += 1
-  if count % 1000 == 0:
-    print "Processed %d tweets, %d links updated" % (count, updates)
-  if 'entities' in tweet:
-    entities = tweet['entities']
-    try:
-      # let's just dig into this as far as we can (and nevertheless
-      # have a catch-all around it in case we've got some unexpected
-      # surprises in the stream (Looking at you, Twitter!)
-      now = parsedate(tweet['created_at'])
-      if 'media' in entities:
-        media = entities['media']
-        for medium in media:
-          analyzeurl("twitter-links", medium['expanded_url'], now)
-          updates += 1
-      if 'urls' in entities:
-        urls = entities['urls']
-        for url in urls:
-          if url['expanded_url']:
-            analyzeurl("twitter-links", url['expanded_url'], now)
-            updates += 1
-    except IOError, e:
-      if e.errno == 111:
-        sys.exit()
-    except Exception as e:
-      print "Got error %s for tweet %s" % (str(e), tweet)
+    if count == 0:
+        print "Ok, streaming..."
+        print "Hit CTRL-C to stop!"
+    count += 1
+    if count % 1000 == 0:
+        print "Processed %d tweets, %d links updated" % (count, updates)
+    if 'entities' in tweet:
+        entities = tweet['entities']
+        try:
+            # let's just dig into this as far as we can (and nevertheless
+            # have a catch-all around it in case we've got some unexpected
+            # surprises in the stream (Looking at you, Twitter!)
+            now = parsedate(tweet['created_at'])
+            if 'media' in entities:
+                media = entities['media']
+                for medium in media:
+                    analyzeurl("twitter-links", medium['expanded_url'], now)
+                    updates += 1
+            if 'urls' in entities:
+                urls = entities['urls']
+                for url in urls:
+                    if url['expanded_url']:
+                        analyzeurl("twitter-links", url['expanded_url'], now)
+                        updates += 1
+        except IOError, e:
+            if e.errno == 111:
+                sys.exit()
+        except Exception as e:
+            print "Got error %s for tweet %s" % (str(e), tweet)
