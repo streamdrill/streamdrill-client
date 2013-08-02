@@ -176,15 +176,9 @@ class StreamDrillClient(serverUrl: String,
     val base = "%s/1/update/%s/%s".format(serverUrl, trend, keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":"))
     val url = new StringBuilder(base)
     ts match {
-<<<<<<< HEAD
-      case Some(d) if (value.isDefined) =>
-        url.append("?").append("v=%f&ts=%d".format(value.get, ts.get.getTime))
-      case Some(d) if (value.isEmpty) =>
-=======
       case Some(d) if value.isDefined =>
         url.append("?").append("v=%f&ts=%d".format(value.get, ts.get.getTime))
       case Some(d) if value.isEmpty =>
->>>>>>> 26b2c85f5364d92b1cf5195a0199b61a32ee4adb
         url.append("?").append("ts=%d".format(ts.get.getTime))
       case None if value.isDefined =>
         url.append("?").append("v=%f".format(value.get))

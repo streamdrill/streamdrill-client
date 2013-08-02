@@ -192,7 +192,9 @@ class StreamDrillClient:
 
         c = self._connectWithAuth("/1/query/%s/score" % trend, urllib.urlencode(qp), method="POST", data=data)
         response = c.getresponse()
-        print(response.read())
+        if response.status != 200:
+            raise StreamDrillException("Got status response %d (%s)" % (response.status, httplib.responses[response.status]))
+        return json.loads(response.read())
 
     def _checkStatus(self, response):
         status = response.status
@@ -259,7 +261,7 @@ class StreamDrillClientStream:
     def __init__(self, conn):
         self.conn = conn
 
-    def update(self, trend, keys, ts=None):
+    def update(self, trend, keys, ts=None, value=None):
         """Send an update.
 
         Parameters:
@@ -267,10 +269,12 @@ class StreamDrillClientStream:
           keys: array of keys to update
           ts: timestamp (as a datetime object) (optional)
         """
-        if ts is None:
-            text = "%s\t%s\n" % (trend, "\t".join(keys))
-        else:
-            text = "%s\t%s\tts=%d\n" % (trend, "\t".join(keys), datetime2millis(ts))
+        text = "%s\t%s" % (trend, "\t".join(keys))
+        if ts:
+            text += "\tts=%d" % datetime2millis(ts)
+        if value:
+            text += "\tv=%f" % str(value)
+        text += "\n"
         l = len(text)
         self.conn.send("%x\r\n" % l)
         self.conn.send(text + "\r\n")
@@ -308,6 +312,8 @@ if __name__ == "__main__":
     for i in range(10):
         cs.update("test-trend", ["frank", str(i)])
 
-    c.score("test-trend", [("juhu", 123), ("man", 456), ("man", "this: is great!")], timestamp=datetime.now())
+    scores = c.score("test-trend", [("juhu", 123), ("man", 456), ("man", "this: is great!")], timestamp=datetime.now())
+    for score in scores:
+        print("key %s has score %f (last update %d)" % (score["keys"], score["score"], score["ts"]))
 
     print(cs.close()['rate'])
