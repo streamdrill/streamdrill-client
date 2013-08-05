@@ -231,7 +231,7 @@ class StreamDrillClient(serverUrl: String,
    */
   def score(trend: String, keys: Seq[String], ts: Option[Date] = None, timescale: Option[String] = None): Double = {
     val path = "/1/query/" + trend + "/score"
-    val qp = ts.map(("ts" -> _.getTime)).toMap
+    val qp = ts.map("ts" -> _.getTime).toMap
     val c = connectWithAuth("POST", path, qp)
     c.setDoOutput(true)
     c.getOutputStream.write(keys.map(URLEncoder.encode(_, "UTF-8")).mkString(":").getBytes("UTF-8"))
