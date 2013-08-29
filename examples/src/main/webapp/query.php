@@ -1,5 +1,5 @@
 <?php
-function getHeaders($url)
+function getHeaders($method, $url)
 {
 
     date_default_timezone_set('UTC');
@@ -8,7 +8,7 @@ function getHeaders($url)
     $sec = "9e13e4ac-ad93-4c8f-a896-d5a937b84c8a";
 
     $date = date('D, j M Y h:i:s ') . 'GMT';
-    $preHash = "GET\n$date\n$url";
+    $preHash = "$method\n$date\n$url";
     $sig = base64_encode(hash_hmac('sha1', $preHash, $sec, TRUE));
 
     $headers = array(
@@ -32,6 +32,9 @@ function callAPI($method, $base, $path, $data = false)
         case "PUT":
             curl_setopt($curl, CURLOPT_PUT, 1);
             break;
+        case "DELETE":
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
+            break;
         default:
             if ($data) $url = sprintf("%s%s?%s", $base, $path, http_build_query($data));
     }
@@ -39,7 +42,7 @@ function callAPI($method, $base, $path, $data = false)
     print("calling " . $url . "\n");
 
     #curl_setopt($curl, CURLOPT_VERBOSE, true);
-    curl_setopt($curl, CURLOPT_HTTPHEADER, getHeaders($path));
+    curl_setopt($curl, CURLOPT_HTTPHEADER, getHeaders($method, $path));
     curl_setopt($curl, CURLOPT_URL, $url);
     curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
@@ -50,4 +53,6 @@ print(callAPI("GET", "http://localhost:9669", "/1/create/views/items") . "\n");
 print(callAPI("GET", "http://localhost:9669", "/1/update/views/theitem") . "\n");
 print(callAPI("GET", "http://localhost:9669", "/1/query/views", array( 'count' => 10 )) . "\n");
 
+print(callAPI("DELETE", "http://localhost:9669", "/1/clear/views") . "\n");
+print(callAPI("DELETE", "http://localhost:9669", "/1/delete/views") . "\n");
 ?>
