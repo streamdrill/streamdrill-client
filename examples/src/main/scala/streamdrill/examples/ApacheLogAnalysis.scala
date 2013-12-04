@@ -1,11 +1,10 @@
 package streamdrill.examples
 
-import io.Source
 import java.text.SimpleDateFormat
 import streamdrill.client.StreamDrillClient
-import java.io.FileInputStream
+import java.io.{BufferedReader, InputStreamReader, FileInputStream}
 import java.util.zip.GZIPInputStream
-import java.util.Locale
+import java.util.{UUID, Locale}
 
 /**
  * A more practical example that parses an apache http log-file and streams the
@@ -42,21 +41,33 @@ object ApacheLogAnalysis extends App {
 
   // our parsers for the date and the log line
   val dateParser = new SimpleDateFormat("dd/MMM/yyyy:HH:mm:ss Z")
-  val lineParser = """^((?:[^ ,]+(?:, +[^ ,]+)+)|(?:[^ ]+)) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "([A-Z]+) (.+?) HTTP/(1.\d)" (\d{3}) (-|\d+) "([^"]*)" "([^"]*)""""
+  //  val lineParser = """^((?:[^ ,]+(?:, +[^ ,]+)+)|(?:[^ ]+)) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "([A-Z]+) (.+?) HTTP/(1.\d)" (\d{3}) (-|\d+) "([^"]*)" "([^"]*)""""
+  val lineParser = """^((?:[^ ,]+(?:, +[^ ,]+)+)|(?:[^ ]+)) (\S+) (\S+) \[([\w:/]+\s[+\-]\d{4})\] "(?:([A-Z]+) (.+?)(?: HTTP/(1.\d))?)?" (\d{3}) (-|\d+).*$"""
       .r
+
+  // 199.72.81.55 - - [01/Jul/1995:00:00:01 -0400] "GET /history/apollo/ HTTP/1.0" 200 6245
+  // 110.85.126.0 - - [28/Nov/2012:00:05:58 +0100] "GET / HTTP/1.0" 200 20516 "http://blog.mikiobraun.de/" "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)"
 
   // create a new client to access the streamdrill instance
   val client = new StreamDrillClient(baseUrl, ACCESS_KEY, ACCESS_SECRET)
 
+  val TREND = "apache-access-log-"+UUID.randomUUID().toString
+
   // create the trend
-  client.create("apache-access-log", "host:local:response", 100000, Seq("day", "hour", "minute"))
+  try { client.clear(TREND) } catch { case e: Exception => }
+  client.create(TREND, "host:local:response", 1000000, Seq("month", "week", "day", "hour", "minute"))
   val stream = client.stream()
 
   println("streaming log file: %s".format(logfile))
-  Source.fromInputStream(logStream).getLines().foreach {
-    case lineParser(host, _, _, date, method, url, version, response, size, referer, _*) =>
-      stream.update("apache-access-log", Seq(host, url, response), ts = Some(dateParser.parse(date)))
-    case l => println("not matched: '%s'".format(l))
+  val is = new BufferedReader(new InputStreamReader(logStream), 8 * 1024 * 1024)
+  var line = is.readLine()
+  while (line != null) {
+    line match {
+      case lineParser(host, _, _, date, method, url, version, response, size) =>
+        stream.update(TREND, Seq(host, url, response), ts = Some(dateParser.parse(date)))
+      case l => println("not matched: '%s'".format(l))
+    }
+    line = is.readLine()
   }
 
   // the result is a json string with the number of updates and a rate of updates/s
