@@ -123,9 +123,15 @@ class StreamDrillClient(serverUrl: String,
     c
   }
 
+  /**
+   * Timeouts! 5s for connect, 60s for read.
+   *
+   * @param c
+   * @return
+   */
   private def readResponseWithTimeouts(c: HttpURLConnection): String = {
-    c.setConnectTimeout(2000)
-    c.setReadTimeout(20000)
+    c.setConnectTimeout(5000)
+    c.setReadTimeout(60000)
     Source.fromInputStream(c.getInputStream).getLines().mkString("\n")
   }
 
