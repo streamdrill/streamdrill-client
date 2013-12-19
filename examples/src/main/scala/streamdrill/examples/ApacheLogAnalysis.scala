@@ -75,7 +75,7 @@ object ApacheLogAnalysis extends App {
   println("%d updates at %.0f keys/s".format(updates, rate))
 
   // let's query the data now (this may also be done concurrently during updating)
-  val trend = client.query("apache-access-log")
+  val trend = client.query(TREND)
   println(trend.map(entry => "%d - %s".format(math.round(entry._2), entry._1.mkString(" - "))).mkString("\r\n"))
 }
 
