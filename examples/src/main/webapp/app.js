@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2014 streamdrill UG (haftungsbeschraenkt). All rights reserved.
- */
-
 var demoApp = (function () {
   // this is a a small d3 tween function for nice looking counts
   function numberTween(d) {
