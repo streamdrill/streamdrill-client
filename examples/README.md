@@ -16,5 +16,5 @@ In case your streamdrill server is running on a different host or port, edit src
 1. Download the streamdrill.jar from http://streamdrill.com/
 2. run streamdrill: `java -jar streamdrill.jar`
 3. run the demo web app: `mvn jetty:run`
-4. run the data injector: `mvn scala:run -DmainClass=streamdrill.examples.PageActionsample`
+4. run the data injector: `mvn scala:run -DmainClass=streamdrill.examples.PageActionsExample`
 5. open dashboard and play: http://localhost:8080/
