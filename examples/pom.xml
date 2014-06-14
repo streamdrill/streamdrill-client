@@ -19,6 +19,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <scala.version>2.9.2</scala.version>
     <commons-codec.version>1.7</commons-codec.version>
+    <jetty.version>9.2.0.v20140526</jetty.version>
+    <jetty.port>8080</jetty.port>
     <junit.version>4.10</junit.version>
   </properties>
 
@@ -27,6 +29,11 @@
       <groupId>streamdrill</groupId>
       <artifactId>streamdrill-scala</artifactId>
       <version>1.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-proxy</artifactId>
+      <version>${jetty.version}</version>
     </dependency>
 
     <!-- scala, logging etc. -->
@@ -65,12 +72,25 @@
           </execution>
         </executions>
         <configuration>
-          <!--<scalaClassName>scala.tools.nsc.CompileClient</scalaClassName>-->
           <args>
             <!--<arg>-unchecked</arg>-->
             <arg>-deprecation</arg>
             <arg>-explaintypes</arg>
           </args>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>${jetty.version}</version>
+        <configuration>
+          <stopKey>stop-jetty</stopKey>
+          <stopPort>8899</stopPort>
+          <webAppSourceDirectory>${basedir}/src/main/webapp</webAppSourceDirectory>
+          <webAppConfig>
+            <contextPath>/</contextPath>
+          </webAppConfig>
+          <scanIntervalSeconds>0</scanIntervalSeconds>
         </configuration>
       </plugin>
     </plugins>
