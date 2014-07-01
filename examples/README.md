@@ -13,10 +13,14 @@ This demo is an example on how to add your own dashboard using streamdrill as a 
 It requires a running streamdrill and will proxy requests through the demo webapp to streamdrill.
 In case your streamdrill server is running on a different host or port, edit src/main/webapp/WEB-INF/web.xml
 
+Prerequisite:
+
+* install the streamdrill-client in your local maven repository using `mvn install` in the parent directory
+
 1. Download the streamdrill.jar from http://streamdrill.com/
 2. run streamdrill: `java -jar streamdrill.jar`
 3. run the demo web app: `mvn jetty:run`
-4. run the data injector: `mvn scala:run -DmainClass=streamdrill.examples.PageActionsample`
+4. run the data injector: `mvn scala:run -DmainClass=streamdrill.examples.PageActionsExample`
 5. open dashboard and play: http://localhost:8080/
 
 
