@@ -18,3 +18,30 @@ In case your streamdrill server is running on a different host or port, edit src
 3. run the demo web app: `mvn jetty:run`
 4. run the data injector: `mvn scala:run -DmainClass=streamdrill.examples.PageActionsample`
 5. open dashboard and play: http://localhost:8080/
+
+
+StockMentions demo
+==================
+
+This demo opens a connection to the Twitter streaming API and collects information on stock mentions.
+The data is dissected and put into a number of trends in streamdrill. To see what can be done with the API,
+there is a javascript visualization showing connections between words and stocks.
+
+Prerequisites:
+
+Go to https://dev.twitter.com/ and log in using your twitter account. Then click on your avatar (top right)
+and select "My applications". Create a new application and you will then have access to the required keys
+and tokens used below.
+
+1. Download the streamdrill.jar from http://streamdrill.com/
+2. run streamdrill: `java -jar streamdrill.jar`
+3. run the demo web app: `mvn jetty:run`
+4. start the data collector: `mvn scala:run -DmainClass=streamdrill.examples.StockMentions -DaddArgs="api-key|api-secret|token|token-secret"`
+5. open http://localhost:8080/stocks/
+
+Replace the arguments with the corresponding parts from the Twitter App configuration site:
+
+> api-key <- API key
+> api-secret <- API secret
+> token <- Access token
+> token-secret <- Access token secret

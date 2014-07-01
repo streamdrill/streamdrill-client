@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2012 TWIMPACT UG (haftungsbeschraenkt). All rights reserved.
+  ~ Copyright (c) 2014 streamdrill UG (haftungsbeschraenkt). All rights reserved.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -34,6 +34,23 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-proxy</artifactId>
       <version>${jetty.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.twitter4j</groupId>
+      <artifactId>twitter4j-stream</artifactId>
+      <version>[3.0,)</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-core</artifactId>
+      <version>[4.9,)</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.lucene</groupId>
+      <artifactId>lucene-analyzers-common</artifactId>
+      <version>[4.9,)</version>
     </dependency>
 
     <!-- scala, logging etc. -->
@@ -71,13 +88,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <args>
-            <!--<arg>-unchecked</arg>-->
-            <arg>-deprecation</arg>
-            <arg>-explaintypes</arg>
-          </args>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.eclipse.jetty</groupId>

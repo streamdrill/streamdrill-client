@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<!--
+  ~ Copyright (c) 2014 streamdrill UG (haftungsbeschraenkt). All rights reserved.
+  -->
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Twitter Stocks Visualization</title>
+  <meta property="og:title" content="streamdrill - twitter stocks visualization"/>
+  <meta property="og:image" content="twistocks.png"/>
+  <meta property="og:description" content="A visualization of Twitter stocks mentions."/>
+  <link rel="image_src" href="twistocks.png"/>
+  <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="vis.js"></script>
+  <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.min.css" rel="stylesheet">
+  <style>
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background: #000000;
+    }
+
+    #vis {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      text-shadow: #000 0 1px 1px;
+    }
+
+    div.stats {
+      position: absolute;
+      margin-left: 20px;
+      margin-bottom: 10px;
+      bottom: 0;
+      left: 0;
+    }
+
+    .stats div {
+      width: 100px;
+    }
+
+    div.info {
+      margin-top: 20px;
+      margin-left: 20px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    h2 {
+      color: #aaa;
+
+    }
+
+    p, small {
+      color: #eee;
+    }
+
+    p a, small a {
+      text-decoration: none;
+    }
+
+    label {
+      font-size: small;
+      color: #aaa;
+    }
+
+    .link {
+      stroke: #999;
+      stroke-opacity: .6;
+    }
+  </style>
+</head>
+<body>
+<div id="vis">
+</div>
+<div class="container-fluid">
+  <div class="row-fluid info">
+    <div class="span4">
+      <h2>Twitter Stocks Visualization
+        <small><a href="http://streamdrill.com/">streamdrill</a> demo</small>
+      </h2>
+      <p>
+        This demo shows a real-time visualization of mentioned keywords in combination with
+        stock symbols on <a href="http://twitter.com">Twitter</a>. The raw data is feed into streamdrill using
+        <a href="https://gist.github.com/thinkberg/5372650">this sketch</a>. This visualization is then driven
+        by the results. You can take a look at the <a href="http://play.streamdrill.com/dashboard/">raw data</a>.
+      </p>
+
+      <div>
+        <div class="field input-prepend">
+          <button id="clears" class="btn" type="button"><i class="icon-remove"></i></button>
+          <input class="input-small" id="symbol" type="text" placeholder="Symbol">
+        </div>
+      </div>
+      <div>
+        <div class="input-prepend">
+          <button id="cleark" class="btn" type="button"><i class="icon-remove"></i></button>
+          <input class="input-small" id="keyword" type="text" placeholder="keyword">
+        </div>
+      </div>
+      <div>
+        <div class="input-prepend input-append">
+          <button id="sizeminus" class="btn" type="button"><i class="icon-minus"></i></button>
+          <input id="size" class="input-mini" style="text-align: center" type="text" value="200">
+          <button id="sizeplus" class="btn" type="button"><i class="icon-plus"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="stats">
+    <h4><span id="nodesize"></span> nodes</h4>
+
+    <div id="friction" class="progress progress-warning">
+      <div class="bar" style="width: 80%">Heat</div>
+    </div>
+    <small>
+      Made possible by <a href="http://twitter.github.io/bootstrap/">Bootstrap</a>, <a href="http://d3js.org/">d3.js</a>
+      and <a href="http://jquery.com">jQuery</a>. Let me know what you think: <a href="http://twitter.com/thinkberg">@thinkberg</a>
+    </small>
+  </div>
+</body>
+</html>
