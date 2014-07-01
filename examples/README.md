@@ -49,7 +49,7 @@ and tokens used below.
 
 Replace the arguments with the corresponding parts from the Twitter App configuration site:
 
-> api-key <- API key
-> api-secret <- API secret
-> token <- Access token
-> token-secret <- Access token secret
+> api-key ◀︎ API key   
+> api-secret ◀ API secret   
+> token ◀ Access token   
+> token-secret ◀ Access token secret
