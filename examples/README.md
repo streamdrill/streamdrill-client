@@ -27,7 +27,7 @@ Prerequisite:
 StockMentions demo
 ==================
 
-[Stock Mentions](https://raw.githubusercontent.com/thinkberg/streamdrill-client/master/examples/src/main/webapp/stocks/twistocks.png)
+![Stock Mentions](https://raw.githubusercontent.com/thinkberg/streamdrill-client/master/examples/src/main/webapp/stocks/twistocks.png)
 
 This demo opens a connection to the Twitter streaming API and collects information on stock mentions.
 The data is dissected and put into a number of trends in streamdrill. To see what can be done with the API,
