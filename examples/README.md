@@ -27,9 +27,13 @@ Prerequisite:
 StockMentions demo
 ==================
 
+![Stock Mentions](https://raw.githubusercontent.com/thinkberg/streamdrill-client/master/examples/src/main/webapp/stocks/twistocks.png)
+
 This demo opens a connection to the Twitter streaming API and collects information on stock mentions.
 The data is dissected and put into a number of trends in streamdrill. To see what can be done with the API,
 there is a javascript visualization showing connections between words and stocks.
+
+The demo is also online available at http://play.streamdrill.com/vis/
 
 Prerequisites:
 
@@ -45,7 +49,7 @@ and tokens used below.
 
 Replace the arguments with the corresponding parts from the Twitter App configuration site:
 
-> api-key <- API key
-> api-secret <- API secret
-> token <- Access token
-> token-secret <- Access token secret
+> api-key ◀︎ API key   
+> api-secret ◀ API secret   
+> token ◀ Access token   
+> token-secret ◀ Access token secret
