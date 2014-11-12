@@ -17,7 +17,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <scala.version>2.9.2</scala.version>
+    <scala.version>2.11.2</scala.version>
     <commons-codec.version>1.7</commons-codec.version>
     <jetty.version>9.2.0.v20140526</jetty.version>
     <jetty.port>8080</jetty.port>
