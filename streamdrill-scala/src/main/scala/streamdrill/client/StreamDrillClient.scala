@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2015 streamdrill UG (haftungsbeschraenkt). All rights reserved.
+ */
+
 package streamdrill.client
 
 import javax.crypto.spec.SecretKeySpec
 import javax.crypto.Mac
 import org.apache.commons.codec.binary.Base64
 import java.net.{URLEncoder, HttpURLConnection, URL}
+import streamdrill.json.{JSONObject, JSONParser, JSONWriter}
+
 import io.Source
 import java.net.HttpURLConnection.{HTTP_OK, HTTP_CREATED}
 import grizzled.slf4j.Logging

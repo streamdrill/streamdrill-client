@@ -1,10 +1,14 @@
+/*
+ * Copyright (c) 2015 streamdrill UG (haftungsbeschraenkt). All rights reserved.
+ */
+
 package streamdrill.examples
 
 import java.io.{BufferedReader, InputStreamReader}
 import java.net.{HttpURLConnection, URL}
-import scala.Some
 import org.apache.commons.codec.binary.Base64
-import streamdrill.client.{JSONParser, StreamDrillClient}
+import streamdrill.client.StreamDrillClient
+import streamdrill.json.JSONParser
 
 /**
  * A simple example how to analyse retweets from Twitter.
