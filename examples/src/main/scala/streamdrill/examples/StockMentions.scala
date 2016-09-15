@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 streamdrill UG (haftungsbeschraenkt). All rights reserved.
+ * Copyright (c) 2016 streamdrill UG (haftungsbeschraenkt). All rights reserved.
  */
 
 package streamdrill.examples
@@ -143,5 +143,5 @@ object StockMentions extends App {
     }
   })
 
-  twitterStream.filter(new FilterQuery().track(SYMBOLS.toArray))
+  twitterStream.filter(new FilterQuery().track(SYMBOLS.toArray:_*))
 }
